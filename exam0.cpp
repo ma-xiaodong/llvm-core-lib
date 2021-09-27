@@ -16,10 +16,7 @@ static LLVMContext context;
 
 Module *makeLLVMModule() {
   Module *mod = new Module("sum.ll", context);
-  mod->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32 \
-                       -i64:64:64-f32:32:32-f64:64:64-v64:64:64 \
-                       -v128:128:128-a0:0:64-s0:64:64-f80:128:128 \
-                       -n8:16:32:64-S128");
+  mod->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
   mod->setTargetTriple("x86_64-pc-linux-gnu");
 
   // Construction the function.
@@ -72,11 +69,27 @@ Module *makeLLVMModule() {
   st1->setAlignment(llvm::Align(4));
 
   // load values from stack
+  LoadInst *ld0 = new LoadInst(ptrA, "", false, labelEntry);
+  ld0->setAlignment(llvm::Align(4));
+  LoadInst *ld1 = new LoadInst(ptrB, "", false, labelEntry);
+  ld1->setAlignment(llvm::Align(4));
 
+  // add function
+  BinaryOperator *addRes = BinaryOperator::Create(Instruction::Add,
+                                                  ld0, ld1, "add", 
+                                                  labelEntry);
+  ReturnInst::Create(context, addRes, labelEntry);
 
-  return NULL;
+  return mod;
 }
 
 int main() {
+  Module *mod = makeLLVMModule();
+  std::error_code ErrorInfo;
+  raw_fd_ostream fos("sum.bc", ErrorInfo, sys::fs::OpenFlags::OF_None);
+  
+  verifyModule(*mod);
+  WriteBitcodeToFile(*mod, fos);
+
   return 0;
 }
