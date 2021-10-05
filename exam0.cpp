@@ -64,7 +64,7 @@ Module *makeLLVMModule() {
   StoreInst *st0 = new StoreInst(int32_a, ptrA, false,
                                  labelEntry);
   st0->setAlignment(llvm::Align(4));
-  StoreInst *st1 = new StoreInst(int32_b, ptrA, false,
+  StoreInst *st1 = new StoreInst(int32_b, ptrB, false,
                                  labelEntry);
   st1->setAlignment(llvm::Align(4));
 
